@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "Prizo ML 200",
+    "version": "1.0",
+    "description": "Fusiona 4 páginas de Mercado Libre en una sola.",
+    "permissions": [
+        "storage"
+    ],
+    "host_permissions": [
+        "*://*.mercadolibre.com.ar/*",
+        "*://*.mercadolibre.com.mx/*",
+        "*://*.mercadolibre.com.co/*",
+        "*://*.mercadolibre.cl/*",
+        "*://*.mercadolibre.com.pe/*",
+        "*://*.mercadolibre.com.uy/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.mercadolibre.com.ar/*",
+                "*://*.mercadolibre.com.mx/*",
+                "*://*.mercadolibre.com.co/*",
+                "*://*.mercadolibre.cl/*",
+                "*://*.mercadolibre.com.pe/*",
+                "*://*.mercadolibre.com.uy/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ]
+}

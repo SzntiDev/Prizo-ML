@@ -2,13 +2,27 @@ import asyncio
 import pandas as pd
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
-
+import os
 async def main():
     print("\nScraper Mercado Libre")
     
     async with async_playwright() as p:
-        navegador = await p.chromium.launch(headless=False)
-        pagina = await navegador.new_page()
+        # Definimos las rutas necesarias para la extensión
+        ruta_extension = os.path.abspath("./extension_prizo")
+        user_data_dir = os.path.abspath("./chrome_data")
+
+        # Lanzamos un contexto "persistente" (necesario para las extensiones)
+        contexto = await p.chromium.launch_persistent_context(
+            user_data_dir,
+            headless=False,  # ¡Recuerda! Las extensiones no se ven en modo oculto
+            args=[
+                f"--disable-extensions-except={ruta_extension}",
+                f"--load-extension={ruta_extension}",
+            ],
+        )
+        
+        # Ahora creamos la página desde ese contexto
+        pagina = contexto.pages[0] if contexto.pages else await contexto.new_page()
         
         while True:
             mensaje_pais = """
@@ -52,44 +66,37 @@ async def main():
         dominio = DOMINIOS.get(codpais, "com")
 
         alworks = []
-        for npag in range(1, 4):
-            desde = (npag - 1) * 48 + 1
-            
-            if npag == 1:
-                url_actual = f"https://listado.mercadolibre.{dominio}/{producto}"
-            else:
-                url_actual = f"https://listado.mercadolibre.{dominio}/{producto}_Desde_{desde}"
-            
-            print(f"Buscando en Página {npag}...")
-            await pagina.goto(url_actual)
-            await pagina.wait_for_timeout(wait_time)
-            
-            html = await pagina.content()
-            sopa = BeautifulSoup(html, "html.parser")
-            productos_pagina = sopa.find_all("div", class_="ui-search-result__wrapper")
-            
-            # Usamos .extend() para sumar lo nuevo a lo que ya teníamos
-            alworks.extend(productos_pagina)
-
-        price_link = {} #diccionario para guardar el precio y el link
-
-        # for npag in range(1, 6):
-        url_actual = f"https://listado.mercadolibre.com.{codpais}/{producto}#D[A:{productoalt}]"
-            # if npag > 1:
-            #     url_actual += f"?p={npag}"
+        # Solo necesitamos una URL. La extensión hará el resto.
+        url_actual = f"https://listado.mercadolibre.{dominio}/{producto}"
             
         print(f"Buscando productos en: {url_actual}")
         await pagina.goto(url_actual)
-        await pagina.wait_for_timeout(wait_time)
+        
+        # IMPORTANTE: Esperamos a que la extensión haga su magia
+        print("""
+ ____                                         __               
+/\  _`\        __                     /'\_/`\/\ \              
+\ \ \L\ \_ __ /\_\  ____     ___     /\      \ \ \             
+ \ \ ,__/\`'__\/\ \/\_ ,`\  / __`\   \ \ \__\ \ \ \  __        
+  \ \ \/\ \ \/ \ \ \/_/  /_/\ \L\ \   \ \ \_/\ \ \ \L\ \       
+   \ \_\ \ \_\  \ \_\/\____\ \____/    \ \_\  \ \_\ \____/       
+    \/_/  \/_/   \/_/\/____/\/___/      \/_/   \/_/\/___/        
+                                                               
+                                                               
+La extensión está fusionando las páginas... espera 12 segundos.
+        """)
+        await pagina.wait_for_timeout(12000) 
             
+        # Capturamos el HTML ya "engordado" por la extensión
         html = await pagina.content()
         sopa = BeautifulSoup(html, "html.parser")
-
-
+        # Buscamos los productos en el HTML que procesamos
+        alworks = sopa.find_all("div", class_="ui-search-result__wrapper")
         
-        productos = sopa.find_all("div", class_="ui-search-result__wrapper")
-        alworks.extend(productos)
+        # Diccionario para los resultados
+        price_link = {} 
 
+    
         print(f"\n¡Genial! Encontré {len(alworks)} posibles productos para analizar.")
 
         lista_final = []
@@ -133,7 +140,7 @@ async def main():
             df.to_csv("productos_ml.csv", index=False, encoding="utf-8-sig")
             print(f"\n¡Listo! Ya guardé toda la información en 'productos_ml.csv'.")
         
-        await navegador.close()
+        await contexto.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
