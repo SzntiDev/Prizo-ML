@@ -7,21 +7,18 @@ async def main():
     print("\nScraper Mercado Libre")
     
     async with async_playwright() as p:
-        # Definimos las rutas necesarias para la extensión
         ruta_extension = os.path.abspath("./extension_prizo")
         user_data_dir = os.path.abspath("./chrome_data")
 
-        # Lanzamos un contexto "persistente" (necesario para las extensiones)
         contexto = await p.chromium.launch_persistent_context(
             user_data_dir,
-            headless=False,  # ¡Recuerda! Las extensiones no se ven en modo oculto
+            headless=False,  #sin modo oculto asi si se ven las extensiones
             args=[
                 f"--disable-extensions-except={ruta_extension}",
                 f"--load-extension={ruta_extension}",
             ],
         )
         
-        # Ahora creamos la página desde ese contexto
         pagina = contexto.pages[0] if contexto.pages else await contexto.new_page()
         
         while True:
@@ -61,18 +58,14 @@ async def main():
             "sv": "com.sv", "ni": "com.ni"
         }
         
-        # Obtenemos el dominio correcto según el código que ingresó el usuario
-        # Si no existe, usamos "com" por defecto
         dominio = DOMINIOS.get(codpais, "com")
 
         alworks = []
-        # Solo necesitamos una URL. La extensión hará el resto.
         url_actual = f"https://listado.mercadolibre.{dominio}/{producto}"
             
         print(f"Buscando productos en: {url_actual}")
         await pagina.goto(url_actual)
         
-        # IMPORTANTE: Esperamos a que la extensión haga su magia
         print("""
  ____                                         __               
 /\  _`\        __                     /'\_/`\/\ \              
@@ -83,14 +76,12 @@ async def main():
     \/_/  \/_/   \/_/\/____/\/___/      \/_/   \/_/\/___/        
                                                                
                                                                
-La extensión está fusionando las páginas... espera 12 segundos.
+La extensión está fusionando las páginas... espera 15 segundos.
         """)
-        await pagina.wait_for_timeout(12000) 
+        await pagina.wait_for_timeout(15000) 
             
-        # Capturamos el HTML ya "engordado" por la extensión
         html = await pagina.content()
         sopa = BeautifulSoup(html, "html.parser")
-        # Buscamos los productos en el HTML que procesamos
         alworks = sopa.find_all("div", class_="ui-search-result__wrapper")
         
         # Diccionario para los resultados
@@ -103,7 +94,7 @@ La extensión está fusionando las páginas... espera 12 segundos.
         num_a_procesar = len(alworks) 
         
         print(f"Ahora voy a extraer el detalle de los primeros {num_a_procesar} productos...")
-        
+        vistos = set()
         for i, tarjeta in enumerate(alworks[:num_a_procesar]):
             titulo_elem = tarjeta.find("h2", class_="poly-component__title")
             if not titulo_elem:
@@ -111,10 +102,9 @@ La extensión está fusionando las páginas... espera 12 segundos.
             
             # 2. Buscamos el Link (es el link dentro del título)
             link_elem = titulo_elem.find("a") if titulo_elem else None
-            
             # 3. Buscamos el Precio
             precio_elem = tarjeta.find("span", class_="andes-money-amount__fraction")
-            
+
             if link_elem and precio_elem:
                 url_detalle = link_elem['href']
                 # Si el link es relativo (empieza con /), le ponemos el dominio
@@ -123,17 +113,19 @@ La extensión está fusionando las páginas... espera 12 segundos.
                 
                 titulo = titulo_elem.text.strip()
                 precio = precio_elem.text.strip()
-                
+                huella = (titulo, precio)                
+
                 # Guardamos en el diccionario
                 price_link[url_detalle] = precio
                 
                 print(f"[{i+1}/{num_a_procesar}] Encontrado: {titulo[:40]}... -> ${precio}")
-                
-                lista_final.append({
-                    "Título": titulo,
-                    "Link": url_detalle,
-                    "Precio": precio
-                })
+                if huella not in vistos:
+                    vistos.add(huella)
+                    lista_final.append({
+                        "Título": titulo,
+                        "Link": url_detalle,
+                        "Precio": precio
+                    })
 
         if lista_final:
             df = pd.DataFrame(lista_final)

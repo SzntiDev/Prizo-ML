@@ -4,48 +4,49 @@ console.log(`
 
 
 // funcion que busca productos y las pega
+async function cargarMasPaginas(cantidad = 20) {
+    let paginaActual = 1;
 
-async function cargarMasPaginas(cantidad = 10) {
-    let paginaActual = 1; // pagina actual
+    // 1. LIMPIEZA TOTAL: Quitamos #, ?, y cualquier _Desde_ previo
+    let urlBase = window.location.href
+        .split('#')[0]          // Corta el # rebelde
+        .split('?')[0]          // Corta los filtros ?
+        .split(/_Desde_\d+/)[0]; // Corta el _Desde_ anterior
+
+    // Quitamos la barra final / si existe
+    if (urlBase.endsWith('/')) urlBase = urlBase.slice(0, -1);
 
     while (paginaActual <= cantidad) {
-        // Buscamos el link usando el atributo que encontraste en la captura
-        const nextButton = document.querySelector('a[data-andes-pagination-control="next"]');
+        // 2. Calculamos el salto de 48 en 48
+        let desde = 1 + (paginaActual * 48);
 
-        if (!nextButton) {
-            console.log("Ya no hay más páginas.");
-            break;
-        }
-        const nextUrl = nextButton.href;
-        console.log("Fusionando: " + nextUrl);
-        // 1. Pedimos la página
-        const respuesta = await fetch(nextUrl);
-        const html = await respuesta.text();
-        // 2. La procesamos
-        const parser = new DOMParser();
-        const docNueva = parser.parseFromString(html, 'text/html');
-        // 3. Extraemos productos y los pegamos
-        const nuevosProductos = docNueva.querySelectorAll('.ui-search-result__wrapper');
-        const contenedor = document.querySelector('.ui-search-results');
-        if (contenedor && nuevosProductos.length > 0) {
-            nuevosProductos.forEach(prod => contenedor.appendChild(prod));
+        // 3. Montamos la URL perfecta
+        const nextUrl = `${urlBase}_Desde_${desde}_NoIndex_True`;
+        console.log("Fusionando página " + (paginaActual + 1) + ": " + nextUrl);
 
-            // 4. Actualizamos el botón de la página actual con el de la nueva
-            // para que en la siguiente vuelta del 'while' tengamos el link que sigue
-            const nuevoBotonNext = docNueva.querySelector('a[data-andes-pagination-control="next"]');
-            if (nuevoBotonNext) {
-                nextButton.href = nuevoBotonNext.href;
+        try {
+            const respuesta = await fetch(nextUrl);
+            const html = await respuesta.text();
+            const parser = new DOMParser();
+            const docNueva = parser.parseFromString(html, 'text/html');
+
+            const nuevosProductos = docNueva.querySelectorAll('.ui-search-result__wrapper');
+            const contenedor = document.querySelector('.ui-search-results');
+
+            if (contenedor && nuevosProductos.length > 0) {
+                nuevosProductos.forEach(prod => contenedor.appendChild(prod));
+                console.log(`¡Éxito! Página acoplada desde el ítem ${desde}.`);
+                paginaActual++;
             } else {
-                nextButton.remove(); // Si no hay más, quitamos el botón
+                console.log("Ya no hay más productos únicos.");
+                break;
             }
-
-            paginaActual++;
-            console.log(`Página ${paginaActual} acoplada.`);
-        } else {
+        } catch (error) {
+            console.error("Error al pedir página:", error);
             break;
         }
     }
-    console.log("¡Fusión finalizada! Prizo tiene todos los datos listos.");
+    console.log("--- PROCESO TERMINADO ---");
 }
-// No olvides llamar a la función al final
-cargarMasPaginas(10);
+
+cargarMasPaginas(20);

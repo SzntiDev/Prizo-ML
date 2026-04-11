@@ -1,17 +1,16 @@
 import pandas as pd
 
-# 1. Configuración y carga
 pd.set_option('display.max_colwidth', None)
 df = pd.read_csv("productos_ml.csv", encoding="utf-8-sig", dtype={'Precio': str})
 
-# 2. Limpieza inicial de precios
+#limpieza de precios
 df["Precio_Num"] = pd.to_numeric(df["Precio"].str.replace(".", "", regex=False), errors='coerce')
 
-# 3. ELIMINAR DUPLICADOS (Hacer esto ANTES de las estadísticas)
+#eliminar duplicados
 df.sort_values("Precio_Num", inplace=True)
-df.drop_duplicates(subset=['Link'], keep='first', inplace=True)
+df.drop_duplicates(subset=['Título'], keep='first', inplace=True)
 
-price_column = df["Precio_Num"] # Actualizamos la referencia
+price_column = df["Precio_Num"] 
 
 print("--- Estadísticas Reales (Sin duplicados) ---")
 print(f"Total de productos únicos: {len(df)}")
