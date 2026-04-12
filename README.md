@@ -1,109 +1,130 @@
-<h1 align="center">
-  <br>
-  Prizo ML
-  <br>
-</h1>
+# Prizo-ML
 
-<h4 align="center">A high-performance Mercado Libre scraper and market analytics tool.</h4>
+A specialized Machine Learning-ready dataset generator and scraper for Mercado Libre, focusing on market analysis and price tracking.
 
-<p align="center">
-  <em>Read this in other languages: <a href="README.md">English</a>, <a href="README-es.md">Español</a></em>
-</p>
+## Description
+Prizo-ML is a Python-based utility part of the Prizo ecosystem, designed to collect high-quality product data from Mercado Libre. It automates the extraction of titles, prices, and links, saving the results in both CSV and Excel formats for further analysis or training machine learning models.
 
-<p align="center">
-  <a href="#-features">Features</a> •
-  <a href="#-how-it-works">How It Works</a> •
-  <a href="#-installation--usage">Installation & Usage</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-tech-stack">Tech Stack</a>
-</p>
+## Detailed Overview
+Understanding market trends requires large amounts of data. Prizo-ML addresses this by scraping hundreds of product results from search queries. It includes a specialized scanner module that can verify product availability and price changes over time. The tool is designed to mimic human-like browsing patterns to ensure reliable data collection without triggering anti-scraping measures.
 
----
+## Features
+- Mass scraping of products from Mercado Libre
+- Concurrent scanning and data validation
+- Data export to structured `productos_ml.csv` and `productos_ml.xlsx`
+- Custom Chrome profile integration for persistent sessions
+- Intelligent filtering of sponsored or irrelevant results
+- Pre-processing logic for machine learning dataset preparation
 
-> [!IMPORTANT]
-> **Prizo ML** uses a unique "Page Fusion" technology via a browser extension to capture hundreds of products in a single pass, bypassing traditional pagination limits and providing real-time market data.
+## Technologies Used
+- Python 3.x
+- Selenium / Playwright (Web automation)
+- Pandas (Excel and CSV processing)
+- Openpyxl (Advanced Excel formatting)
 
-**Prizo ML** is a professional-grade scraping ecosystem designed to extract, clean, and analyze product data from Mercado Libre across multiple Latin American countries. By combining **Playwright** automation with a custom **JavaScript Extension**, it achieves lightning-fast data collection with built-in deduplication logic.
-
-Designed for market researchers and e-commerce analysts, the project ensures data integrity through a "Product Footprint" algorithm that filters duplicate sponsored listings and overlapping search results.
-
----
-
-## ✨ Features
-
-- 🔗 **Smart Page Fusion**: Custom browser extension that merges up to 20 pages into a single DOM for ultra-fast single-shot extraction.
-- 🛡️ **Intelligent Deduplication**: Advanced filtering based on Título + Precio "footprints" to eliminate redundant sponsored ads and tracking URL variations.
-- 📊 **Market Insights**: Integrated scanner powered by **Pandas** that calculates average prices, finds the cheapest deals, and exports clean CSV data.
-- 🚀 **One-Click Launcher**: Includes a Windows `.bat` file that automatically handles dependency installation and environment setup.
-- 🌎 **Multi-Country Support**: Native support for AR, BR, MX, CO, CL, and 13+ other Mercado Libre regions.
-
----
-
-## 🚀 How It Works
-
-Prizo ML utilizes a hybrid architecture to maximize efficiency:
-
-### 1. The Fusion Engine (Browser Side)
-A specialized JavaScript content script detects the search results and performs asynchronous fetches of subsequent pages. It appends new items to the live window, effectively "fattening" the DOM before the scraper starts.
-
-### 2. The Extraction Core (Python Side)
-Using **Playwright**, the system launches a persistent browser context with the extension pre-loaded. It waits for the fusion process to complete and then harvests the entire product list in one millisecond-range operation.
-
-### 3. Data Sanitization
-Every product is passed through a validation gate. If a product's unique combination of Title and Price has already been seen, it is discarded, ensuring the final CSV is 100% unique.
-
----
-
-## 💻 Installation & Usage
-
-### Prerequisites
-- [Python 3.10+](https://www.python.org/downloads/)
-- Google Chrome installed (recommended)
-
-### Steps (The Professional Way)
-1. **Clone the repository**:
+## Installation Instructions
+1. Clone the repository:
    ```bash
    git clone https://github.com/SzntiDev/Prizo-ML.git
+   ```
+2. Navigate to the project directory:
+   ```bash
    cd prizo-ml
    ```
-2. **Run the Automatic Launcher**:
-   Simply double-click the `run_Prizo_ML.bat` file. 
-   
-   *This will automatically:*
-   - Create the environment.
-   - Install dependencies (`pip install -r requirements.txt`).
-   - Configure Playwright browsers.
-   - Start the Scraper.
-   - Generate final Statistics.
+3. Install dependencies:
+   ```bash
+   pip install selenium pandas openpyxl
+   ```
+4. (Optional) Configure your Chrome data path in the script.
 
----
-
-## 🏗️ Architecture
-
-The project follows a decoupled structure for easy maintenance:
-
-```text
-prizo-ml/
-├── extension_prizo/        # Custom JS Extension (The Fusion Engine)
-│   ├── content.js          # Core logic for page merging
-│   └── manifest.json       # Extension configuration
-├── ml_scraper.py           # Main automation script (Playwright)
-├── ml_scanner.py           # Data analysis and statistics (Pandas)
-├── run_Prizo_ML.bat        # Standardized one-click launcher
-├── requirements.txt        # Project dependencies
-├── productos_ml.csv        # Raw/Cleaned data output
-└── chrome_data/            # Persistent browser sessions
+## Usage Examples
+To start scraping products:
+```bash
+python ml_scraper.py
+```
+To run the price scanner on saved products:
+```bash
+python ml_scanner.py
 ```
 
+## Project Structure
+- `ml_scraper.py`: Primary engine for extracting product data.
+- `ml_scanner.py`: Module for periodic price updates and availability checks.
+- `productos_ml.csv`: Raw data storage.
+- `productos_ml.xlsx`: Formatted report for human review.
+- `run_Prizo_ML.bat`: Quick-start batch file for Windows.
+- `chrome_data/`: Local cache for browser sessions.
+- `extension_prizo/`: Core browser extension components (if applicable).
+
+## Configuration
+Modify the `requirements.txt` if additional libraries are needed. You can adjust the scraping delay and result limit in `ml_scraper.py`.
+
+## API Documentation
+Internal logic is documented via Python docstrings.
+
+## Screenshots or Examples
+![Scraped Data Example](productos_ml.xlsx) *(Example of the generated Excel report)*
+
+## Roadmap / Future Improvements
+- Price prediction models using regression
+- Real-time alerts for price drops
+- Support for other e-commerce platforms (Amazon, eBay)
+- Web dashboard for data visualization
+
+## Contributing Guidelines
+Contributions are welcome. Please ensure any new features included unit tests for the scraper logic.
+
+## License
+MIT License
+
 ---
 
-## ⚙️ Tech Stack
+# Prizo-ML (Español)
 
-- **[Python](https://www.python.org/)**: Core logic and automation.
-- **[Playwright](https://playwright.dev/)**: High-level browser orchestration.
-- **[Pandas](https://pandas.pydata.org/)**: Data manipulation and analytics.
-- **[BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/)**: Precise HTML parsing.
-- **[JavaScript (ES6)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)**: Browser extension logic.
+Un generador de conjuntos de datos y extractor especializado para Mercado Libre, enfocado en el análisis de mercado y seguimiento de precios.
 
----
-> Project developed with a focus on data accuracy, high-speed collection, and simplified user experience.
+## Descripción
+Prizo-ML es una utilidad basada en Python diseñada para recopilar datos de productos de alta calidad de Mercado Libre. Automatiza la extracción de títulos, precios y enlaces, guardando los resultados en formatos CSV y Excel para su posterior análisis o entrenamiento de modelos de IA.
+
+## Resumen Detallado
+Comprender las tendencias del mercado requiere grandes cantidades de datos. Prizo-ML aborda esto extrayendo cientos de resultados de productos. Incluye un módulo de escaneo especializado que puede verificar la disponibilidad de productos y los cambios de precios a lo largo del tiempo.
+
+## Características
+- Extracción masiva de productos de Mercado Libre
+- Escaneo concurrente y validación de datos
+- Exportación de datos a `productos_ml.csv` y `productos_ml.xlsx`
+- Integración con perfiles de Chrome personalizados
+- Filtrado inteligente de resultados patrocinados
+- Lógica de preprocesamiento para preparación de datasets de ML
+
+## Tecnologías Utilizadas
+- Python 3.x
+- Selenium / Playwright
+- Pandas / Openpyxl
+
+## Instrucciones de Instalación
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/SzntiDev/Prizo-ML.git
+   ```
+2. Navegar al directorio `prizo-ml`.
+3. Instalar dependencias:
+   ```bash
+   pip install selenium pandas openpyxl
+   ```
+4. Ejecutar el extractor:
+   ```bash
+   python ml_scraper.py
+   ```
+
+## Estructura del Proyecto
+- `ml_scraper.py`: Motor principal de extracción.
+- `ml_scanner.py`: Módulo para actualizaciones periódicas.
+- `productos_ml.csv`: Almacenamiento de datos crudos.
+- `run_Prizo_ML.bat`: Archivo para ejecución rápida.
+
+## Guía para Contribuir
+¡Las contribuciones son bienvenidas!
+
+## Licencia
+Licencia MIT
